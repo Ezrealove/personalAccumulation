@@ -1,0 +1,98 @@
+踩坑记录
+1.2021/7/21
+ibties中
+NOW() > next_time    
+不能写成  <![CDATA[ NOW() > next_time ]]>   ？？ 还没有测试 
+-----------------------------------------------------------------------------
+2.任何入参，记得判空。不然到处都是空指针。尤其是(入参.xxx)。
+-----------------------------------------------------------------------------
+3.ibties 2.0 中
+其中resultMap 要字段完全对应，包括形式和个数，否则会报错。
+
+<resultMap id="integratedSelectionTaskMap" class="integratedSelectionTaskInfo">
+        <result property="taskId" column="task_id"/>
+        <result property="productGroupId" column="product_group_id"/>
+        <result property="ruleId" column="rule_id"/>
+        <result property="nextTime" column="next_time"/>
+        <result property="type" column="type"/>
+        <result property="status" column="status"/>
+</resultMap>
+
+<select id="queryVaildTaskInfo" parameterClass="java.util.HashMap" resultMap="integratedSelectionTaskMap">
+        SELECT
+            task_id,
+            product_group_id,
+            rule_id,
+            next_time,
+            type,
+            status
+        FROM
+            integrated_selection_task_info
+        WHERE
+            NOW() > next_time
+        AND
+            status = 1
+        <isNotNull prepend="AND" property="id">
+            task_id > #id#
+        </isNotNull>
+        order by task_id asc
+        limit #pageSize#
+</select>
+-----------------------------------------------------------------------------
+4.jsf入参的时候，一定要加如下的privateKey，不然是500，unkhown error。还有attributes，要加Set。
+ [
+ {
+  "privateKey": "f8739bd8-942b-406b-bdc6-362fd01b7574",
+  "sourceCode": "ace39774",
+  "mcChannel": 0
+ },
+ {
+  "pin": "天天04218",
+  "ids": ["13741827"],
+  "num": 1,
+  "currentStageFlag": true,
+  "pageId": "jddlink_F277614584460911181107973",
+  "position": 1,
+  "cdMap": {
+   "13741827": 30
+  },
+  "attributes": {
+   "13741827": Set[ 48 ] 
+  }
+ }
+]
+
+com.jd.material.jsf.service.ProductInfoService
+-----------------------------------------------------------------------------
+5.不要随便改别人的出参和入参，不然会有问题。有时候觉得别人写的不好，不对称什么的，
+比如出参两个字段，同类型，一个是int一个是String, 于是两个都改成了String，就会产生问题。因为可能
+前端直接拿着这个东西去存，从而保存不进去。
+-----------------------------------------------------------------------------
+6.又产生了一个线上问题
+lowcode商品组权限放开
+改代码的时候要把代码的逻辑先看懂，看懂之后才能改；不能影响之前的老逻辑；不然会出现线上事故。
+而且自己的嗅觉还是很差劲，当时已经发现这个问题了，应该去想一下是不是有人在上线，不然怎么会用着用着突然不行了？
+想到有人在线了，就会想到是不是自己的代码有问题。这样，这种线上事故就能够杜绝了。
+-----------------------------------------------------------------------------
+7.分期时间记得看一下，如果是未来的，本来就不会下发数据   2021/10/13
+分期时间记得看一下，如果是未来的分期时间，本来就不会下发数据！！！！！！！我从下午2点到晚上9点53，才发现问题所在。
+血与泪啊。
+-----------------------------------------------------------------------------
+8.PLUS神券商品池 
+http请求上游接口的时候，首先注意中文pin 要encode  其他拿到请求之后不要去decode 
+已经连续2天晚上弄到24点以后了，为了这个http请求。 2021/10/28
+-----------------------------------------------------------------------------
+9.ck连接
+ssh gongxiaotian1@bastion.jd.com
+
+mysql -h 172.18.164.15 -P 9004 -u materia_rw -p'nyWkn7oaLzjK9V';
+ck新集群还有个 172.18.164.17
+
+use materia
+-----------------------------------------------------------------------------
+2021/12/17
+10.求三级部门的时候，发现有些时候会出现空指针
+经过测试，凡是对集合list，set，map，数组等进行循环一定要进行判断是否为空，增强代码的健壮性
+-----------------------------------------------------------------------------
+2022/1/4
+11.写sql的时候 使用or的时候 需要配合(): where xxxx and（xxxx or xxxxx）

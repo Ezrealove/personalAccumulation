@@ -1,0 +1,72 @@
+1.idea安装插件
+GitToolBox
+-----------------------------------------------------------------------------
+2.线上和测试使用不同的字段 一套代码
+
+spring-config-service.xml:
+<bean id="selectionRuleTopic" class="java.lang.String">
+		<constructor-arg index="0" value="${jmq.selection.rule.topic}" ></constructor-arg>
+</bean>
+
+TimingRuleSelectionTask:
+    @Autowired
+    @Qualifier("selectionRuleTopic")
+    private String topic;
+
+var.development.properties：
+jmq.selection.rule.topic=selection_rule_beta
+
+var.beta.properties:
+jmq.selection.rule.topic=selection_rule_beta
+
+var.production.properties:
+jmq.selection.rule.topic=selection_rule
+-----------------------------------------------------------------------------
+git commit之后想要回滚，使用
+git reset --hard "HEAD^"
+-----------------------------------------------------------------------------
+如果调用接口要用到上下文参数，
+<jsf:parameter key="partnerId" value=""/>
+<jsf:parameter key="partnerKey" value=""/>
+在http://deeptest.jd.com/deeptest/quicktest/list?type=jsf&env=master上Token这样写
+{partnerId:'lowcode' , partnerKey:'f9c590d113168c8ce9f572255ffdab0e'}
+-----------------------------------------------------------------------------
+com.jd.material.jsf.service.
+-----------------------------------------------------------------------------
+QPS：Queries Per Second意思是“每秒查询率”，是一台服务器每秒能够相应的查询次数，是对一个特定的查询服务器在规定时间内所处理流量多少的衡量标准。
+
+TPS：是TransactionsPerSecond的缩写，也就是事务数/秒。它是软件测试结果的测量单位。
+一个事务是指一个客户机向服务器发送请求然后服务器做出反应的过程。客户机在发送请求时开始计时，收到服务器响应后结束计时，以此来计算使用的时间和完成的事务个数。
+
+访问一个页面会请求服务器3次，一次放，产生一个“T”，产生3个“Q” 
+-----------------------------------------------------------------------------
+查看算法推荐位性能
+delivery_soa.web.biSort.619223
+算法预发环境
+biHttpRequestUrl = "http://diviner-stage.jd.local/diviner";
+-----------------------------------------------------------------------------
+redis
+高并发学习
+
+1.请求进来 可以通过DNS负载均衡（A记录 域名指向一个IPv4地址），再通过（c记录 cname 域名指向一个域名）根据CDN,把ip地址转发到不同地址上的机房；再通过机房的网关进行限流以及权限验证；再通过负载均衡器反向代理到
+不同的机器上。
+
+
+并发读
+1.限流
+2.mq
+3.数据库 主从、读写分离等
+
+并发写：
+1.JVM锁
+2.数据库唯一主键
+mysql效率低一些，考虑redis 分布式锁 
+redis 使用 setnx 并设置超时时间
+如果业务没完成怎么办 ：可以使用看门狗，开一个线程监控，如果业务没完成就加时间
+红锁 大于一半的redis机器能拿到锁，就能加锁成功。
+发生stw的时候  JVM使用zk拿链家，并用变量存下来这个值，然后再存到mysql。
+-----------------------------------------------------------------------------
+git因为密码账号错误 HTTP Basic: Access denied and fatal Authentication   2022/3/8
+mac 设置
+sudo git config --system --unset credential.helper
+-----------------------------------------------------------------------------

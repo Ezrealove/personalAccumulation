@@ -1,0 +1,14 @@
+query_material_adverts： QPS:240000
+query_mat_prod_for_groups:QQPS : 70000
+delivery_soa.web.directPushExecute: QPS：400000
+
+
+
+2022 6 18
+19：44
+query_material_adverts： QPS:210000-220000
+query_mat_prod_for_groups:QQPS : 48000-50000
+delivery_soa.web.directPushExecute: QPS：340000-350000
+
+投放soa20点流量 QPS:121.5w tp999:705ms cpu:37.77%
+素材中心material20点流量 qps :100w tp999:6146ms cpu:68.66%

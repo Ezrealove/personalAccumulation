@@ -1,0 +1,70 @@
+组业务理解
+1.底池
+-----------------------------------------------------------------------------
+2.定投逻辑
+入口：com.jd.directpush.api.TargetedDeliveryService（enhancedFilterAndSort）
+
+(1)定投逻辑
+判断是否有定投或bi,过滤没开bi的did，分离定投did（生成directSortResult）
+
+directDeliverySort.queryDirectInfo
+
+<1> queryUserInfo  
+<2> filterDirectInfo
+
+(2)普通投放bi逻辑
+各个渠道的sort方法（生成res）
+
+(3)整合投放结果和定投
+directDeliverySort.packageBiDirectResult
+-----------------------------------------------------------------------------
+注意：当deliveryId字段不为空时为非落地素材组did，反之sortDeliveryId字段为落地商品组did
+-----------------------------------------------------------------------------
+标签定投逻辑
+
+1.cms中,首先进入sortADirectUtil.buildMaterialSortDirect(erpNo, map)，此时directType不会设置。
+
+2.接着进入deliveryCmsService.createSortDirectCrowdPool(materialSortDirects)，
+会去deliveryCms中向数据库中存储数据，此时，
+如果customDirectInfo不为空的话，directType会设置为0x01<<(27(CUSTOM_DIRECT)-1);(左移26位，相当于小数点右移26位),
+即10000000...，至于多少个0看directType-1的值。
+也就是说，每选择一个定投，都会将二进制表达形式中的对应位置置为1，以确定定投包含的定投类型。
+这是因为directType采取位运算，每一位代表一个定投维度，int类型（32位）位数已基本占满，
+所以现在都是在第从右往左数第27位，及定制定投位customDirect上置为1。
+
+3.在请求定投soa后,在queryUserInfo之前,
+如果定制定投customDirect为1，会根据CustomDirectTypes的id生成一个customDirectType:
+customDirectType |= (0x01L << (type.getId()-1));
+接着进入<1> queryUserInfo,
+根据pin查询标签;
+然后进入<2> filterDirectInfo,
+根据customDirectType.label进行过滤
+-----------------------------------------------------------------------------
+4.
+规则内取交集，规则间取并集
+-----------------------------------------------------------------------------
+5.实时接口jsf的理解 看代码怎么看（肖超）
+jsf系统分为两个大类，
+一个是去数据库中拿数据，然后请求各种handle拿到各种数据，默认走缓存（如果是那种实时的数据，那么就要再重新请求一次接口）（其中，如果是扩容组，那么
+会请求算法拿到数据，不会使用组里的数据）；
+二是请求bi算法，进行排序（只有普通组才会走）
+三是BI和裁剪商品结果
+-----------------------------------------------------------------------------
+6.soa中 每个sort会进行算法分流，对uuid进行hash，一部分走算法请求一部分走人工
+可以看tmp值
+int tmp = directPushService.isWhiteListType(deliveryType(), userInfo.getPin()) ? 1 : directPushService.isBiSorting(userInfo, deliveryType(), dividerInfo);
+-----------------------------------------------------------------------------
+7.商品、广告都进行了分表
+如何做的分表呢？
+根据分期id进行hash，看到了哪一张表中
+String stageId = "35068111";
+String sub_id = new DecimalFormat("00").format(Math.abs((long) stageId.hashCode()) % 100);
+System.out.println(sub_id);
+-----------------------------------------------------------------------------
+接算法流程
+Streaming ：ProudctInfoTaskManager.sycProductInfoForBi()
+cms：
+ProductBiServiceImpl.dealStageBi
+-----------------------------------------------------------------------------
+提供给提报系统的商品组相关接口
+ProductManagementServiceImpl.createProduct
